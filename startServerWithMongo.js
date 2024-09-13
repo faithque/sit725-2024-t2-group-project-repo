@@ -1,6 +1,6 @@
 let express = require('express');
 let app = express();
-const bcrypt = require('bcrypt');
+const argon2 = require('argon2');
 const User = require('./models/user');
 const { MongoClient, ServerApiVersion } = require('mongodb') // Optional if using express-async-handler
 
@@ -72,7 +72,7 @@ app.post('/login', async (req, res) => {
     if (!user) {
         return res.status(401).send('Invalid username or password');
     }
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await argon2.verify(user.password, password);
     if (!isPasswordValid) {
         return res.status(401).send('Invalid username or password');
     }
@@ -98,7 +98,7 @@ app.post('/register', async (req, res) => {
             throw new Error('Username already exists');
         }
         // Hash the password
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await argon2.hash(password);
         // Create a new user
         await User.insertOne({
             username,
